@@ -9,8 +9,9 @@ const logger = require('./config/config').logger
 // Import models
 const ApiResponse = require('./models/ApiResponse');
 
-// Routes
-console.log("No routes defined");
+// Import routes
+const test_routes = require('./routes/test_routes');
+// const plug_routes = require('./routes/plug_routes');
 
 const app = express();
 
@@ -26,6 +27,10 @@ app.use(cors());
 app.get('/', function(req, res, next) {
     res.status(200).send(new ApiResponse("Hello World!", 202));
 });
+
+app.use('/api', test_routes);
+
+
 
 //This endpoint is called when no other one was found, and throws a 404 error
 app.use('*', function(req, res, next){
