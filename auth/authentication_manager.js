@@ -1,4 +1,4 @@
-var logger = require('tracer').colorConsole();
+const logger = require('../config/config').logger
 const config = require('../config/config');
 var sha1 = require('sha1');
 const axios = require('axios');

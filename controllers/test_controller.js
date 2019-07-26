@@ -1,6 +1,6 @@
 const ApiResponse = require('../models/ApiResponse');
 const AuthenticationManager = require('../auth/authentication_manager');
-var logger = require('tracer').colorConsole();
+const logger = require('../config/config').logger
 const axios = require('axios');
 
 
