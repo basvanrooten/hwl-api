@@ -12,12 +12,12 @@ module.exports = {
     },
 
     communicationTest(req, res, next) {
-        axios.get('https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY')
+        axios.get('https://clients3.google.com/generate_204')
             .then(result => {
-                logger.debug(result.data);
-                res.status(200).send(result.data);
+                logger.debug(result);
+                res.status(200).send(new ApiResponse("Successfully connected to internet", 200));
             }).catch(e => {
-                logger.error("Can't connect to NASA API, possible internet outtage? ERROR: ", e.message);
+                logger.error("Can't connect to Google Test API, possible internet outtage? ERROR: ", e.message);
                 res.status(503).send(new ApiResponse(e.message, 503));
             })
     }
