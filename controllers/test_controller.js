@@ -24,6 +24,10 @@ module.exports = {
     },
 
     getSessionKey(req, res, next) {
-        res.status(200).send(AuthenticationManager.getSessionKey());
+        AuthenticationManager.getSessionKey().then(sessionkey => {
+            res.status(200).send({
+                "session": sessionkey
+            });
+        });
     }
 }

@@ -15,7 +15,7 @@ module.exports = {
         logger.debug(password);
 
         // Login to HWL using user credentials
-        axios({
+        return axios({
                 method: 'get',
                 url: 'https://cloud.homewizard.com/account/login',
                 auth: {
@@ -32,7 +32,7 @@ module.exports = {
                     logger.debug(response.data.session);
                     return response.data.session;
 
-                } if (response.data.status === "failed" && response.data.error === 110) {
+                } else if (response.data.status === "failed" && response.data.error === 110) {
 
                     // Authentication failed, returning FAILED
                     logger.error("HWL returned invalid credentials! Check credentials for validity!")
@@ -41,12 +41,13 @@ module.exports = {
 
                 } else {
 
-                   // Authentication failed, but with unknown reason
-                   logger.error("HWL returned unknown authentication error. ERROR :", response.data);
-                   return "ERROR";
+                    // Authentication failed, but with unknown reason
+                    logger.error("HWL returned unknown authentication error. ERROR :", response.data);
+                    return "ERROR";
                 }
             })
             .catch(e => {
+                // Cannot communicate with HWL, returning error
                 logger.error("Failed to communicate with HWL! ERROR: ", e.message);
                 return "ERROR";
             });
