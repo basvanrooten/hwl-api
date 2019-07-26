@@ -11,7 +11,7 @@ const ApiResponse = require('./models/ApiResponse');
 
 // Import routes
 const test_routes = require('./routes/test_routes');
-// const plug_routes = require('./routes/plug_routes');
+const plug_routes = require('./routes/plug_routes');
 
 const app = express();
 
@@ -29,6 +29,7 @@ app.get('/', function(req, res, next) {
 });
 
 app.use('/api', test_routes);
+app.use('/api', plug_routes);
 
 
 
