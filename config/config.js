@@ -7,6 +7,10 @@ module.exports = {
     "webPort": process.env.PORT || 3000,
     "authKey": process.env.AUTHKEY || "",
 
+    // Authentication for Homewizard Lite API
+    "hwlUsername": process.env.HWL_USERNAME || "",
+    "hwlPassword": process.env.HWL_PASSWORD || "",
+
 
     // Tracer for logging purposes
     logger: require('tracer')

@@ -4,5 +4,6 @@ let TestController = require('../controllers/test_controller');
 // Test Routes
 routes.get('/test', TestController.responseTest);
 routes.get('/test/communication', TestController.communicationTest);
+routes.get('/test/session', TestController.getSessionKey);
 
 module.exports = routes;

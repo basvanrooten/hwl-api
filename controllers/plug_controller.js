@@ -1,5 +1,6 @@
 // Plug Controller
 const ApiResponse = require('../models/ApiResponse');
+const config = require('./config/config');
 
 
 module.exports = {
