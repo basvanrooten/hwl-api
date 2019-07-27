@@ -95,3 +95,6 @@ typings/
 .history
 
 # End of https://www.gitignore.io/api/node,visualstudiocode
+
+# Plug state for Home Assistant
+states/

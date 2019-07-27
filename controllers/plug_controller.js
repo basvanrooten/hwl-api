@@ -1,7 +1,10 @@
 const ApiResponse = require('../models/ApiResponse');
 const AuthenticationManager = require('../auth/authentication_manager');
 const logger = require('../config/config').logger
+var LocalStorage = require('node-localstorage').LocalStorage;
 const axios = require('axios');
+
+localStorage = new LocalStorage('./states');
 
 module.exports = {
 
@@ -83,23 +86,33 @@ module.exports = {
 
                         // Check if request was successful
                         // Should not be necessary, but still...
-                        
+
                         if (response.data.status === "Success") {
                             // Response successful
+
 
                             // Home Assistant compatibility for Restful switch, see 
                             // https://www.home-assistant.io/components/switch.rest/
 
                             // If action is ON: Return true
+
                             if (req.body.action.toUpperCase() === "ON") {
 
+                                // Add plug state to local storage to remember state for Home Assistant
+                                localStorage.setItem(req.params.plugID, true);
+                                logger.debug("State for " + req.params.plugID + " saved to localStorage to true");
+
                                 res.status(200).send({
-                                    "is_active": true
+                                    "is_active": "true"
                                 });
 
                             } else {
+
+                                localStorage.setItem(req.params.plugID, false);
+                                logger.debug("State for " + req.params.plugID + " saved to localStorage to false");
+
                                 res.status(200).send({
-                                    "is_active": false
+                                    "is_active": "false"
                                 });
                             }
 
@@ -121,10 +134,23 @@ module.exports = {
     },
 
     plugState(req, res, next) {
-        // TODO: Implement plug state
 
-        res.status(200).send({
-            "is_active": false
-        });
+        // Check if state exists
+        if (!localStorage.getItem(req.params.plugID)) {
+            logger.debug("Item doesn't exist");
+            
+            // Return false if plug doesn't have a recorded state
+            res.status(200).send({
+                "is_active": "false"
+            });
+            
+        } else {
+            logger.debug("Item exists");
+
+            // Return state from localStorage
+            res.status(200).send({
+                "is_active": localStorage.getItem(req.params.plugID)
+            });
+        }
     }
 }
