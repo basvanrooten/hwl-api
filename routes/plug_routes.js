@@ -1,7 +1,8 @@
 let routes = require('express').Router();
 const PlugController = require('../controllers/plug_controller');
 
-// Routes here
+// Plug routes
 routes.get('/plug', PlugController.getAllPlugs);
+routes.post('/act/smartplug/:smartPlugID/plug/:plugID', PlugController.switchPlug);
 
 module.exports = routes;
