@@ -90,9 +90,19 @@ module.exports = {
                             // Home Assistant compatibility for Restful switch, see 
                             // https://www.home-assistant.io/components/switch.rest/
 
-                            res.status(200).send({
-                                "action": req.body.action.charAt(0).toUpperCase() + req.body.action.slice(1)
-                            });
+                            // If action is ON: Return true
+                            if (req.body.action.toUpperCase() === "ON") {
+
+                                res.status(200).send({
+                                    "is_active": true
+                                });
+
+                            } else {
+                                res.status(200).send({
+                                    "is_active": false
+                                });
+                            }
+
                         } else {
                             // Unsuccessful
                             res.status(400).send(new ApiResponse(e.message, 400));
