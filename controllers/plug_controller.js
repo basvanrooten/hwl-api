@@ -118,5 +118,13 @@ module.exports = {
                 res.status(503).send(new ApiResponse("Invalid session key! Check the logs for more details about this problem ", 503));
             }
         });
+    },
+
+    plugState(req, res, next) {
+        // TODO: Implement plug state
+
+        res.status(200).send({
+            "is_active": false
+        });
     }
 }
