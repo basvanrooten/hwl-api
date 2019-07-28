@@ -9,6 +9,7 @@ HomeWizard Lite Proxy API, built for integrating cheap HomeWizard Lite smartplug
     $ node index.js
 
 The API depends on environment variables for authentication with HomeWizard API.
+
 | Key | Value |
 |--|--|
 | HWL_USERNAME | HomeWizard Lite App Username |
