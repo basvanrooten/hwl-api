@@ -3,6 +3,7 @@ const PlugController = require('../controllers/plug_controller');
 
 // Plug routes
 routes.get('/plug', PlugController.getAllPlugs);
+routes.get('/smartplug', PlugController.getSmartPlug);
 routes.post('/act/smartplug/:smartPlugID/plug/:plugID', PlugController.switchPlug);
 routes.get('/act/smartplug/:smartPlugID/plug/:plugID', PlugController.plugState);
 

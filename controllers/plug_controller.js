@@ -152,5 +152,53 @@ module.exports = {
                 "is_active": localStorage.getItem(req.params.plugID)
             });
         }
+    },
+
+    getSmartPlug(req, res, next) {
+        // Return Smartplug details
+
+        AuthenticationManager.getSessionKey().then(sessionkey => {
+
+            // Check if session key is valid
+            if (sessionkey != "ERROR") {
+
+                axios({
+                        method: 'get',
+                        url: 'https://plug.homewizard.com/plugs',
+                        headers: {
+                            "x-session-token": sessionkey
+                        }
+                    })
+                    .then(response => {
+                        response.data.map((smartplug) => {
+
+                            // Check if no smartplugs exist
+                            if (smartplug.length == 0) {
+                                res.status(200).send(new ApiResponse("No smartplugs found", 200));
+                            } else {
+
+                                // Create custom response based on response data
+                                res.status(200).send({
+                                    "id": smartplug.id,
+                                    "name": smartplug.name,
+                                    "online": smartplug.online,
+                                    "latitude": smartplug.latitude,
+                                    "longtitude": smartplug.longtitude,
+                                    "timeZone": smartplug.timeZone,
+                                    "firmwareUpdateAvailable": smartplug.firmwareUpdateAvailable
+                                });
+                            }
+                        })
+                    })
+                    .catch(e => {
+                        // Cannot communicate with HWL, returning error
+                        logger.error("Failed to communicate with HWL! ERROR: ", e.message);
+                        res.status(503).send(new ApiResponse(e.message, 503));
+                    });
+            } else {
+                // Session key is invalid
+                res.status(503).send(new ApiResponse("Invalid session key! Check the logs for more details about this problem ", 503));
+            }
+        });
     }
 }
