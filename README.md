@@ -12,6 +12,7 @@ The API depends on environment variables for authentication with HomeWizard API.
 
 | Key | Value |
 |--|--|
+| PORT | Port (default 3000) |
 | HWL_USERNAME | HomeWizard Lite App Username |
 | HWL_PASSWORD | HomeWizard Lite App Password |
 | LOGLEVEL | [Tracer Logger Level](https://github.com/baryon/tracer#customize-output-format)  (default trace) |
