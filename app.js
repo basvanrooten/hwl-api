@@ -3,8 +3,6 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const morgan = require("morgan");
-const config = require('./config/config');
-const logger = require('./config/config').logger
 
 // Import models
 const ApiResponse = require('./models/ApiResponse');
