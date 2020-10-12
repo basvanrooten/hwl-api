@@ -41,6 +41,7 @@ Using the included Dockerfile, it is also possible to run this API inside a cont
 | GET | /api/plug/:plugID | Returns `true` or `false` for is_active state of a plug specified by plugID |  | `{ "is_active": false }` |
 | POST | /api/plug/:plugID | [DIMMER] Change dimmer state when request body contains `"type": "dimmer"` and `"value": number`. When value is below `MIN_DIMMING_VALUE`, the dimmer will switch off.  Returns `is_active state`. | `{ "type": "dimmer", "value": 75 }` | `{ "is_active": true }` |
 | | | [SWITCH] Switches plug when request body contains `"type": "switch"` and `"value": "on/off"`. Returns `is_active` state |`{ "type": "switch", "value": "on" }` | `{ "is_active": true }` |
-*Try this yourself. Response contains a bunch of useful info and does not fit needly in this table.
+
+`*` Try this yourself. Response contains a bunch of useful info and does not fit needly in this table.
 ## Contribution
 This project was started by an IT-student as a small 2 day project to improve home-automation by enabling Home Assistant to control HomeWizard Lite plugs. Development will continue when I need more features. Contribution is appreciated.
