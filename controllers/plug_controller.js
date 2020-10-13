@@ -157,13 +157,13 @@ module.exports = {
 
             // Return false if plug doesn't have a recorded state
             res.status(200).send({
-                "is_active": "false"
+                "is_active": false
             });
         } else {
             logger.debug("Item exists");
             // Return state from localStorage
             res.status(200).send({
-                "is_active": localStorage.getItem(req.params.plugID)
+                "is_active": localStorage.getItem(req.params.plugID) === "true"
             });
         }
     },
