@@ -3,24 +3,17 @@ const AuthenticationManager = require('../auth/authentication_manager');
 const logger = require('../config/config').logger
 var LocalStorage = require('node-localstorage').LocalStorage;
 const axios = require('axios');
+const config = require("../config/config");
 
 localStorage = new LocalStorage('./states');
 
 module.exports = {
-
-    login(req, res, next) {
-        // TODO: Implement Login
-
-    },
-
+    // Return all registered plugs
     getAllPlugs(req, res, next) {
-        // Return all registered smart plugs
-
-        AuthenticationManager.getSessionKey().then(sessionkey => {
+        const sessionKey = AuthenticationManager.getSessionKey().then(sessionkey => {
 
             // Check if session key is valid
-            if (sessionkey != "ERROR") {
-
+            if (sessionkey) {
                 axios({
                         method: 'get',
                         url: 'https://plug.homewizard.com/plugs',
@@ -29,28 +22,19 @@ module.exports = {
                         }
                     })
                     .then(response => {
-
-                        let smartplugs = [];
+                        let resArray = [];
                         response.data.map((smartplug) => {
-                            smartplugs.push(smartplug);
-                            logger.debug(smartplug.devices);
-
-                            // Check if no plugs are attached to smartplug
-                            if (smartplug.devices.length < 1) {
-                                res.status(200).send(new ApiResponse("No plugs found", 200));
-                            } else {
-                                // TODO: Add support for multiple SmartPlugs
-                                // 1 Smartplug > Multiple plugs
-                                // res.status(200).send({
-                                //     "smartPlugID": smartplug.id,
-                                //     "smartPlugName": smartplug.name,
-                                //     "smartPlugOnline": smartplug.online,
-                                //     "devices": smartplug.devices
-                                // });
-
-                                res.status(200).send(smartplug.devices);
-                            }
-                        })
+                            resArray.push({
+                                id: smartplug.id,
+                                identifier: smartplug.identifier,
+                                name: smartplug.name,
+                                latitude: smartplug.latitude,
+                                longitude: smartplug.longitude,
+                                online: smartplug.online,
+                                devices: smartplug.devices,
+                            });
+                        });
+                        res.status(200).send(resArray);
                     })
                     .catch(e => {
                         // Cannot communicate with HWL, returning error
@@ -59,94 +43,124 @@ module.exports = {
                     });
             } else {
                 // Session key is invalid
-                res.status(503).send(new ApiResponse("Invalid session key! Check the logs for more details about this problem ", 503));
+                res.status(503).send(new ApiResponse("Invalid session key! Check logs", 503));
             }
+        }).catch(e => {
+            res.status(503).send(new ApiResponse(e, 503));
         });
     },
 
+    // Change the state of a plug
     switchPlug(req, res, next) {
-
         AuthenticationManager.getSessionKey().then(sessionkey => {
 
             // Check if session key is valid
-            if (sessionkey != "ERROR") {
+            if (sessionkey) {
 
-                axios({
-                        method: 'post',
-                        url: 'https://plug.homewizard.com/plugs/' + req.params.smartPlugID + '/devices/' + req.params.plugID + '/action',
-                        headers: {
-                            "x-session-token": sessionkey
-                        },
-                        data: {
-                            action: req.body.action.charAt(0).toUpperCase() + req.body.action.slice(1),
-                        }
-                    })
-                    .then(response => {
-                        logger.debug(response);
+                let data = undefined;
 
-                        // Check if request was successful
-                        // Should not be necessary, but still...
+                // Check plug type
+                if(req.body.type && req.body.type.toLowerCase() === "dimmer") {
 
-                        if (response.data.status === "Success") {
-                            // Response successful
-
-
-                            // Home Assistant compatibility for Restful switch, see 
-                            // https://www.home-assistant.io/components/switch.rest/
-
-                            // If action is ON: Return true
-
-                            if (req.body.action.toUpperCase() === "ON") {
-
-                                // Add plug state to local storage to remember state for Home Assistant
-                                localStorage.setItem(req.params.plugID, true);
-                                logger.debug("State for " + req.params.plugID + " saved to localStorage to true");
-
-                                res.status(200).send({
-                                    "is_active": "true"
-                                });
-
-                            } else {
-
-                                localStorage.setItem(req.params.plugID, false);
-                                logger.debug("State for " + req.params.plugID + " saved to localStorage to false");
-
-                                res.status(200).send({
-                                    "is_active": "false"
-                                });
+                    const dimmerLevel = req.body.value;
+                    if(typeof(dimmerLevel) === "number") {
+                        if(dimmerLevel < config.minDimmingValue) {
+                            data = {
+                                action: "Off",
                             }
-
+                        } else if (dimmerLevel <= 100){
+                            data = {
+                                action: "Range",
+                                value: dimmerLevel
+                            }
                         } else {
-                            // Unsuccessful
-                            res.status(400).send(new ApiResponse(e.message, 400));
+                            // Dimming level is at an invalid amount
+                            logger.error(`Dimmer Level can't be above 100, found ${dimmerLevel}`);
+                            res.status(400).send(new ApiResponse(`Dimmer Level can't be above 100, found ${dimmerLevel}`));
                         }
+                    } else {
+                        res.status(400).send(new ApiResponse("Invalid value. For dimmers you should provide an integer between 0 and 100", 400));
+                    }
+
+                } else {
+                    // Plug is not a dimmer, so should be a switch
+                    if (req.body.value && typeof(req.body.value) === "string") {
+                        data = {
+                            action: req.body.value.toLowerCase() === "on" ? "On" : "Off",
+                        }
+                    } else {
+                        res.status(400).send(new ApiResponse("Invalid value. For switches you should provide 'On' or 'Off'", 400));
+                    }
+                }
+
+                if(data) {
+                    axios({
+                        method: "post",
+                        url:
+                            "https://plug.homewizard.com/plugs/" +
+                            config.smartPlugId +
+                            "/devices/" +
+                            req.params.plugID +
+                            "/action",
+                        headers: {
+                            "x-session-token": sessionkey,
+                        },
+                        data: data,
                     })
-                    .catch(e => {
-                        // Cannot communicate with HWL, returning error
-                        logger.error("HWL declined the request. ERROR: ", e.message);
-                        res.status(400).send(new ApiResponse("HWL declined the request. ERROR: " + e.message, 400));
-                    });
+                        .then((response) => {
+                            logger.debug(response);
+
+                            // Check if request was successful
+                            // Should not be necessary, but still...
+
+                            if (response.data.status === "Success") {
+                                // Response successful
+
+                                // Home Assistant compatibility for Restful switch, see
+                                // https://www.home-assistant.io/components/switch.rest/
+
+                                if(typeof(req.body.value) === "number") {
+                                    const plugState = req.body.value >= config.minDimmingValue;
+                                    localStorage.setItem(req.params.plugID, plugState);
+                                    res.status(200).send({ is_active: plugState });
+                                } else {
+                                    const plugState = req.body.value.toLowerCase() === "on";
+                                    localStorage.setItem(req.params.plugID, plugState);
+                                    res.status(200).send({ is_active: plugState });
+                                }
+                            } else {
+                                // Unsuccessful
+                                res.status(503).send(new ApiResponse(`HWL returned an error. Check logs`, 503));
+                            }
+                        })
+                        .catch((e) => {
+                            // Cannot communicate with HWL, returning error
+                            logger.error(`Can't communicate with HWL: ${e}`);
+                            res.status(400).send(new ApiResponse(`Can't communicate with HWL. Check logs`, 503));
+                        });
+                }
             } else {
                 // Session key is invalid
                 res.status(503).send(new ApiResponse("Invalid session key! Check the logs for more details about this problem ", 503));
             }
+        }).catch(e => {
+            logger.error(e);
+            res.status(503).send(new ApiResponse(e, 503));
         });
     },
 
+    // Get state of plug
     plugState(req, res, next) {
-
         // Check if state exists
         if (!localStorage.getItem(req.params.plugID)) {
             logger.debug("Item doesn't exist");
-            
+
             // Return false if plug doesn't have a recorded state
             res.status(200).send({
                 "is_active": "false"
             });
-            
         } else {
             logger.debug("Item exists");
-
             // Return state from localStorage
             res.status(200).send({
                 "is_active": localStorage.getItem(req.params.plugID)
@@ -154,14 +168,12 @@ module.exports = {
         }
     },
 
+    // Get information about Smartplug
     getSmartPlug(req, res, next) {
-        // Return Smartplug details
-
         AuthenticationManager.getSessionKey().then(sessionkey => {
 
             // Check if session key is valid
-            if (sessionkey != "ERROR") {
-
+            if (sessionkey) {
                 axios({
                         method: 'get',
                         url: 'https://plug.homewizard.com/plugs',
@@ -199,6 +211,9 @@ module.exports = {
                 // Session key is invalid
                 res.status(503).send(new ApiResponse("Invalid session key! Check the logs for more details about this problem ", 503));
             }
+        }).catch(e => {
+            logger.error(e);
+            res.status(503).send(new ApiResponse(e, 503));
         });
     }
 }

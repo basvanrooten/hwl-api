@@ -1,56 +1,48 @@
-const logger = require('../config/config').logger
-const config = require('../config/config');
-var sha1 = require('sha1');
-const axios = require('axios');
+const logger = require("../config/config").logger;
+const config = require("../config/config");
+var sha1 = require("sha1");
+const axios = require("axios");
+const NodeCache = require("node-cache");
+
+const cache = new NodeCache({ stdTTL: config.cacheTTL });
 
 module.exports = {
-
     // Get Session Key from HomeWizard Lite
     getSessionKey() {
+        // Check if sessionkey is cached
+        let sessionKey = cache.get("session");
 
-        // Get Username and Password from config file
-        let username = config.hwlUsername;
-        let password = sha1(config.hwlPassword);
-        logger.debug(username);
-        logger.debug(password);
+        if (sessionKey) {
+            logger.debug(`Cached session key found: ${sessionKey}`);
+            return Promise.resolve(sessionKey);
+        } else {
+            // Session key is not found in cache
+            let username = config.hwlUsername;
+            let password = sha1(config.hwlPassword);
+            logger.debug(username);
+            logger.debug(password);
 
-        // Login to HWL using user credentials
-        return axios({
-                method: 'get',
-                url: 'https://cloud.homewizard.com/account/login',
+            return axios({
+                method: "get",
+                url: "https://cloud.homewizard.com/account/login",
                 auth: {
                     username: username,
-                    password: password
-                }
+                    password: password,
+                },
             })
-            .then(response => {
-
-                // Check status
-                if (response.data.status === "ok") {
-
-                    // Authentication passed, returning session token
-                    logger.debug(response.data.session);
+                .then((response) => {
+                    logger.debug(
+                        `Received session key: ${response.data.session}`
+                    );
+                    cache.set("session", response.data.session);
                     return response.data.session;
-
-                } else if (response.data.status === "failed" && response.data.error === 110) {
-
-                    // Authentication failed, returning FAILED
-                    logger.error("HWL returned invalid credentials! Check credentials for validity!")
-                    logger.debug(response.data);
-                    return "ERROR";
-
-                } else {
-
-                    // Authentication failed, but with unknown reason
-                    logger.error("HWL returned unknown authentication error. ERROR :", response.data);
-                    return "ERROR";
-                }
-            })
-            .catch(e => {
-                // Cannot communicate with HWL, returning error
-                logger.error("Failed to communicate with HWL! ERROR: ", e.message);
-                return "ERROR";
-            });
-    }
-
-}
+                })
+                .catch((e) => {
+                    // Exception occured while trying to communicate with HWL.
+                    logger.error("Can't get session key from HW");
+                    logger.error(e.response);
+                    return Promise.reject("Can't get session key from HW. Check logs");
+                });
+        }
+    },
+};
