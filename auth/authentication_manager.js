@@ -40,7 +40,7 @@ module.exports = {
                 .catch((e) => {
                     // Exception occured while trying to communicate with HWL.
                     logger.error("Can't get session key from HW");
-                    logger.error(e.response);
+                    logger.debug(e);
                     return Promise.reject("Can't get session key from HW. Check logs");
                 });
         }
