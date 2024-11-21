@@ -82,8 +82,28 @@ module.exports = {
                         res.status(400).send(new ApiResponse("Invalid value. For dimmers you should provide an integer between 0 and 100", 400));
                     }
 
+                } elseif(req.body.type && req.body.type.toLowerCase() === "brel_ud_curtain") {
+                    // Device is a curtain, identified as "brel_ud_curtain"
+                    // Variable to store wanted Action 
+                    let actionValue;
+                    
+                    if (req.body.value.toLowerCase() === "up") {
+                        actionValue = "Up";
+                    } elseif(req.body.value.toLowerCase() === "stop"){
+                        actionValue = "Stop";
+                    } elseif(req.body.value.toLowerCase() === "down"){
+                        actionValue = "Down";
+                    } else {
+                        res.status(400).send(new ApiResponse("Invalid value. For curtain typ brel_ud_curtain you should provide 'Up', 'Down' or 'Stop'", 400));
+                    }
+
+                    // create data object with selected Action 
+                    data = {
+                        action: actionValue,
+                    };
+                
                 } else {
-                    // Plug is not a dimmer, so should be a switch
+                    // Plug is not a dimmer or curtain, so should be a switch
                     if (req.body.value && typeof(req.body.value) === "string") {
                         data = {
                             action: req.body.value.toLowerCase() === "on" ? "On" : "Off",
