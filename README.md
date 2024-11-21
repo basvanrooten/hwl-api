@@ -31,16 +31,17 @@ The API depends on environment variables. **Make sure to configure the bold vari
 Using the included Dockerfile, it is also possible to run this API inside a container.
 
 ## Endpoints
-| Method | URL | Description | Example Request | Example Response |
-| -- | -- | -- | -- | -- |
-| GET | /api/test/session | Returns valid session key (Only necessary for testing) | | `{ "session": "string"` } |
-| GET | /api/test/communication | Returns status 200 when API can connect to Google  to verify internet connectivity |
-| | | |
-| GET | /api/plug | Returns all registered plugs | | * |
-| GET | /api/smartplug | Returns info about your internet connected smartplug. (Tip: Use this to determine the ID of your smartplug. Use the `id` property.) | | * |
-| GET | /api/plug/:plugID | Returns `true` or `false` for is_active state of a plug specified by plugID |  | `{ "is_active": false }` |
-| POST | /api/plug/:plugID | [DIMMER] Change dimmer state when request body contains `"type": "dimmer"` and `"value": number`. When value is below `MIN_DIMMING_VALUE`, the dimmer will switch off.  Returns `is_active state`. | `{ "type": "dimmer", "value": 75 }` | `{ "is_active": true }` |
-| | | [SWITCH] Switches plug when request body contains `"type": "switch"` and `"value": "on/off"`. Returns `is_active` state |`{ "type": "switch", "value": "on" }` | `{ "is_active": true }` |
+| Method | URL                     | Description                                                                                                                                                                                        | Example Request                                  | Example Response          |
+| ------ | ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ | ------------------------- |
+| GET    | /api/test/session       | Returns valid session key (Only necessary for testing)                                                                                                                                             |                                                  | `{ "session": "string"` } |
+| GET    | /api/test/communication | Returns status 200 when API can connect to Google  to verify internet connectivity                                                                                                                 |                                                  |                           |
+|        |                         |                                                                                                                                                                                                    |                                                  |                           |
+| GET    | /api/plug               | Returns all registered plugs                                                                                                                                                                       |                                                  | *                         |
+| GET    | /api/smartplug          | Returns info about your internet connected smartplug. (Tip: Use this to determine the ID of your smartplug. Use the `id` property.)                                                                |                                                  | *                         |
+| GET    | /api/plug/:plugID       | Returns `true` or `false` for is_active state of a plug specified by plugID                                                                                                                        |                                                  | `{ "is_active": false }`  |
+| POST   | /api/plug/:plugID       | [DIMMER] Change dimmer state when request body contains `"type": "dimmer"` and `"value": number`. When value is below `MIN_DIMMING_VALUE`, the dimmer will switch off.  Returns `is_active state`. | `{ "type": "dimmer", "value": 75 }`              | `{ "is_active": true }`   |
+|        |                         | [SWITCH] Switches plug when request body contains `"type": "switch"` and `"value": "on/off"`. Returns `is_active` state                                                                            | `{ "type": "switch", "value": "on" }`            | `{ "is_active": true }`   |
+|        |                         | [CURTAIN] Switches a Brel type curtain to either `"type": "brel_ud_curtain"` and `"value": "up/down/stop"`. Returns `is_active` state                                                              | `{ "type": "brel_ud_curtain", "value": "down" }` | `{ "is_active": true }`   |
 
 `*` Try this yourself. Response contains a bunch of useful info and does not fit needly in this table.
 ## Contribution
